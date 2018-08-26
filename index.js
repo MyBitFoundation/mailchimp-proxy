@@ -3,13 +3,13 @@ const Mailchimp = require('mailchimp-api-v3');
 require('dotenv').config();
 
 const mailchimpAPIKey = process.env.MAILCHIMP_API_KEY;
+const listId = process.env.MAILCHIMP_LIST_ID;
 
 const app = express();
 const mailchimp = new Mailchimp(mailchimpAPIKey);
 
 app.get('/api/memberList', (req, res) => {
-  const listId = req.body.listId;
-  
+  console.log('Calling ID', listId)
   mailchimp.get(`/lists/${listId}/members`)
   .then(function(results){
     res.send(results);
