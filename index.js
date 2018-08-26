@@ -6,11 +6,12 @@ const mailchimpAPIKey = process.env.MAILCHIMP_API_KEY;
 const listId = process.env.MAILCHIMP_LIST_ID;
 
 const app = express();
+app.use(express.json());
 const mailchimp = new Mailchimp(mailchimpAPIKey);
 
-app.get('/api/memberList', (req, res) => {
+app.post('/api/member', (req, res) => {
   console.log('Calling ID', listId)
-  mailchimp.get(`/lists/${listId}/members`)
+  mailchimp.post(`/lists/${listId}/members`, req.body)
   .then(function(results){
     res.send(results);
   })
