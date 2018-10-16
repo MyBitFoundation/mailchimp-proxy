@@ -6,13 +6,22 @@ require('dotenv').config();
 
 const mailchimpAPIKey = process.env.MAILCHIMP_API_KEY;
 
-const [ MAILCHIMP_MYBIT_GENERAL_SUBSCRIPTIONS_LIST_ID ] = process.env;
+const { 
+  MAILCHIMP_MYBIT_GENERAL_SUBSCRIPTIONS_LIST_ID,
+  MAILCHIMP_DDF_SUBSCRIPTIONS_LIST_ID,
+  MAILCHIMP_MYBIT_GO_SUBSCRIPTIONS_LIST_ID,
+  MAILCHIMP_TOKENSALE_SUBSCRIPTIONS_LIST_ID,
+  MAILCHIMP_EVENTS_SUBSCRIPTIONS_LIST_ID,
+  MAILCHIMP_COMMUNITY_COMPETITION_LIST_ID
+} = process.env;
 
 const subscriptionsIds = {
   general: MAILCHIMP_MYBIT_GENERAL_SUBSCRIPTIONS_LIST_ID,
-  ddf: MAILCHIMP_MYBIT_GENERAL_SUBSCRIPTIONS_LIST_ID,
-  newsletter: MAILCHIMP_MYBIT_GENERAL_SUBSCRIPTIONS_LIST_ID,
-  tokensale: MAILCHIMP_MYBIT_GENERAL_SUBSCRIPTIONS_LIST_ID
+  ddf: MAILCHIMP_DDF_SUBSCRIPTIONS_LIST_ID,
+  go: MAILCHIMP_MYBIT_GO_SUBSCRIPTIONS_LIST_ID,
+  tokensale: MAILCHIMP_TOKENSALE_SUBSCRIPTIONS_LIST_ID,
+  events: MAILCHIMP_EVENTS_SUBSCRIPTIONS_LIST_ID,
+  competition: MAILCHIMP_COMMUNITY_COMPETITION_LIST_ID
 }
 
 const availableSubscriptionLists = Object.keys(subscriptionsIds).join(' ')
@@ -28,17 +37,19 @@ const app = express();
 app.use(express.json());
 const mailchimp = new Mailchimp(mailchimpAPIKey);
 
+app.get('/', (req, res) => {
+  res.send('Welcome to the MyBit Mailchimp Proxy')
+})
+
 app.post('/api/member', (req, res) => {
-  const [ list, email ] = req.body;
+  const { list, email } = req.body;
   
-  !email && res.send(errorMessages.NO_EMAIL)
-  !list && res.send(errorMessages.NO_LIST)
-  !validator.validate("test@email.com") && res.send(errorMessages.INVALID_EMAIL)
+  if(!email) return res.status(400).json({ error: errorMessages.NO_EMAIL })
+  if(!list) return res.status(400).json({ error: errorMessages.NO_LIST })
+  if(!validator.validate(email)) return res.status(400).json({ error: errorMessages.INVALID_EMAIL })
+  if(!subscriptionsIds[list]) return res.status(400).json({ error: errorMessages.INVALID_LIST })
   
   const listId = subscriptionsIds[list]
-  
-  !listId && res.send(errorMessages.INVALID_LIST)
-  
   console.log(`📩 Trying to subscribe ${email} to our ${list} list`);
   
   mailchimp.post(`/lists/${listId}/members`, { 
